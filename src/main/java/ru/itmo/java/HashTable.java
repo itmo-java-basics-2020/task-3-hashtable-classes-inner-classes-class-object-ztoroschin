@@ -13,7 +13,7 @@ public class HashTable {
     public HashTable(int initialCapacity, double loadFactor) {
         this.loadFactor = loadFactor;
         this.hashTable = new Entry[nextPrime(initialCapacity)];
-        this.threshold = (int)(hashTable.length * loadFactor);
+        this.threshold = (int) (hashTable.length * loadFactor);
     }
 
     public HashTable(int initialCapacity) {
@@ -24,14 +24,16 @@ public class HashTable {
         this(DEFAULT_INITIAL_SIZE, DEFAULT_LOAD_FACTOR);
     }
 
-    Object put(Object key, Object value) {
+    public Object put(Object key, Object value) {
         int hash = hash(key, hashTable.length);
-        while(hashTable[hash] != null) {
-            if(key.equals(hashTable[hash].key)) {
-                return hashTable[hash].setValue(value);
+        while (hashTable[hash] != null) {
+            if (key.equals(hashTable[hash].getKey())) {
+                Object oldValue = hashTable[hash].getValue();
+                hashTable[hash] = new Entry(key, value);
+                return oldValue;
             }
 
-            if(++hash == hashTable.length) {
+            if (++hash == hashTable.length) {
                 hash = 0;
             }
         }
@@ -39,21 +41,21 @@ public class HashTable {
         hashTable[hash] = new Entry(key, value);
         size++;
 
-        if(size > threshold) {
+        if (size > threshold) {
             resize();
         }
 
         return null;
     }
 
-    Object get(Object key) {
+    public Object get(Object key) {
         int hash = hash(key, hashTable.length);
-        while(hashTable[hash] != null) {
-            if(key.equals(hashTable[hash].key)) {
-                return hashTable[hash].value;
+        while (hashTable[hash] != null) {
+            if (key.equals(hashTable[hash].getKey())) {
+                return hashTable[hash].getValue();
             }
 
-            if(++hash == hashTable.length) {
+            if (++hash == hashTable.length) {
                 hash = 0;
             }
         }
@@ -61,24 +63,24 @@ public class HashTable {
         return null;
     }
 
-    Object remove(Object key) {
+    public Object remove(Object key) {
         int hash = hash(key, hashTable.length);
         Object value = null;
 
-        while(hashTable[hash] != null) {
-            if(key.equals(hashTable[hash].key)) {
-                value = hashTable[hash].value;
+        while (hashTable[hash] != null) {
+            if (key.equals(hashTable[hash].getKey())) {
+                value = hashTable[hash].getValue();
                 hashTable[hash] = null;
                 size--;
             } else {
-                Object tempKey = hashTable[hash].key;
-                Object tempValue = hashTable[hash].value;
+                Object tempKey = hashTable[hash].getKey();
+                Object tempValue = hashTable[hash].getValue();
                 hashTable[hash] = null;
                 size--;
                 put(tempKey, tempValue);
             }
 
-            if(++hash == hashTable.length) {
+            if (++hash == hashTable.length) {
                 hash = 0;
             }
         }
@@ -86,7 +88,7 @@ public class HashTable {
         return value;
     }
 
-    int getSize() {
+    public int getSize() {
         return size;
     }
 
@@ -96,47 +98,48 @@ public class HashTable {
 
     private void resize() {
         Entry[] oldHashTable = hashTable;
-        int newSize = nextPrime((int)(oldHashTable.length * RESIZE_MULTIPLY));
+        int newSize = nextPrime((int) (oldHashTable.length * RESIZE_MULTIPLY));
         hashTable = new Entry[newSize];
         this.size = 0;
-        this.threshold = (int)(hashTable.length * loadFactor);
+        this.threshold = (int) (hashTable.length * loadFactor);
 
-        for(var entry : oldHashTable) {
-            if(entry != null) {
-                put(entry.key, entry.value);
+        for (var entry : oldHashTable) {
+            if (entry != null) {
+                put(entry.getKey(), entry.getValue());
             }
         }
     }
 
     private static int nextPrime(int num) {
-        while(!isPrime(num)) {
+        while (!isPrime(num)) {
             num++;
         }
         return num;
     }
 
     private static boolean isPrime(int num) {
-        for(int i = 2; i*i <= num; i++)
-            if(num % i == 0) {
+        for (int i = 2; i * i <= num; i++)
+            if (num % i == 0) {
                 return false;
             }
         return true;
     }
 
-    private static class Entry {
-        Object key;
-        Object value;
+    private final static class Entry {
+        private Object key;
+        private Object value;
 
         private Entry(Object key, Object value) {
             this.key = key;
             this.value = value;
         }
 
-        private Object setValue(Object value) {
-            Object oldValue = this.value;
-            this.value = value;
-            return oldValue;
+        private Object getKey() {
+            return key;
+        }
+
+        private Object getValue() {
+            return value;
         }
     }
-
 }
